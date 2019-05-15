@@ -10,6 +10,9 @@ import Grid from '@material-ui/core/Grid';
 import Popper from '@material-ui/core/Popper';
 import Fade from '@material-ui/core/Fade';
 
+import Snackbar from '@material-ui/core/Snackbar';
+import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
+
 
 const data = {
   "name":"Classic Tee",
@@ -39,15 +42,40 @@ const styles = theme => ({
   myCart: {
     cursor:'pointer',
     marginLeft: 'auto',
+    [theme.breakpoints.down('sm')]: {
+      display: 'none',
+    },
     marginRight: '50px',
-    width: 150,
+    width: 130,
+    height: 32,
+    lineHeight: '32px',
+    textAlign: 'center',
+  },
+  myCartPhone: {
+    cursor:'pointer',
+    marginLeft: 'auto',
+    [theme.breakpoints.up('md')]: {
+      display: 'none',
+    },
+    marginRight: '0px',
+    width: 130,
     height: 32,
     lineHeight: '32px',
     textAlign: 'center',
   },
   appBar: {
+    color: "grey",
     backgroundColor: '#F6F6F7',
-    margin: '16px 100px 16px 100px',
+    [theme.breakpoints.down('sm')]: {
+      margin: '16px 0px 16px 0px'
+    },
+    [theme.breakpoints.up('md')]: {
+      margin: '16px 100px 16px 100px',
+    },
+  },
+  appBarPhone: {
+    backgroundColor: '#F6F6F7',
+    margin: '16px 10px 16px 100px',
   },
   two: {
     padding:30,
@@ -101,11 +129,14 @@ const styles = theme => ({
 
   image: {
     width: 'auto',
-    height: '600px',
+    height: '550px',
   },
   thumbnail: {
     width: '100px',
     height: 'auto',
+  },
+  grid: {
+    margin : '16px',
   }
 
 });
@@ -114,14 +145,13 @@ const styles = theme => ({
 
 class App extends React.Component {
   state = {
-    open: false,
+    open: true,
+    openSnack:false,
     anchorEl: null,
-    carts: [
-      {"id" : 1 , "size" : "S", "quanity" : 1},
-      {"id" : 2 , "size" : "L", "quanity" : 3},
-    ],
-    selected: "S",
+    carts: [],
+    selected: "",
     hover: false,
+    total:0,
   };
 
   handleClick = event => {
@@ -136,32 +166,85 @@ class App extends React.Component {
     this.setState({
       open: false,
     });
+    this.setState({
+      openSnack: false,
+    });
+  };
+
+  //snack bar error message
+  handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    this.setState({ open: false });
   };
 
   handleToggleHover = () => {
     this.setState({hover: !this.state.hover})
   };
 
+  handleClickAddToCart = () => {
+    if(!this.state.selected){
+      this.setState({openSnack: true});
+      return;
+    }
+    let carts = this.state.carts;
+    if(carts.length === 0){
+      carts.push({"id" : 1 , "size" : this.state.selected, "quanity" : 1});
+    }else{
+      let update = false;
+      carts.forEach(c => {
+        if(c.size === this.state.selected){
+          c.quanity++;
+          update = true;
+        }
+      })
+      if(!update){
+        carts.push({"id" : 1 , "size" : this.state.selected, "quanity" : 1});
+      }
+      // console.log(carts);
+    }
+    let total = 0;
+    carts.forEach(c => {
+      total += c.quanity;
+    })
+
+    this.setState({carts: carts});
+    this.setState({total: total});
+    // if(carts.length > 1){
+    //   this.setState({open: true});
+    // }
+  }
+
+  handleChangeSize = (size) => {
+    this.setState({selected: size});
+  }
+
   render() {
     const { classes } = this.props;
-    const { open, anchorEl, selected, hover} = this.state;
+    const { open, anchorEl, selected, hover, total} = this.state;
     const  carts  = this.state.carts;
 
     return (
       <div className={classes.root}>
         <ClickAwayListener onClickAway={this.handleClickAway}>
           <div className={classes.appBar}>
-              <div className={classes.myCart} onMouseOver={this.handleClick}>My Cart (4)</div>
+              <div className={classes.myCart} onMouseOver={this.handleClick}>My Cart ({total})</div>
+              <div className={classes.myCartPhone} onMouseOver={this.handleClick}>
+                <ShoppingCartIcon></ShoppingCartIcon><span>({total})</span> 
+              </div>
                 <Popper open={open} anchorEl={anchorEl} transition placement='bottom-end' className={classes.popper}>
                   {({ TransitionProps }) => (
                     <Fade {...TransitionProps} timeout={350}>
                       <Paper>
                         {carts.map( item => (
-                          <Grid container spacing={0} key={item.id}>
+                          <Grid container spacing={0} key={item.size}>
                             <Grid item xs={4} md={4}>
                               <div className={classes.cartContainer}>
                                 <img className={classes.thumbnail} src='classic-tee.jpg' alt={data.name}/>
                               </div>
+                              <p></p>
                             </Grid>
                             <Grid item xs={4} md={4}>
                               <div className={classes.cartContainer}>
@@ -188,7 +271,7 @@ class App extends React.Component {
           </div>
         </ClickAwayListener>
         <div className={classes.root}>
-          <Grid container spacing={0}>
+          <Grid className={classes.grid} container spacing={0}>
             <Grid item xs={false} md={3}>
             </Grid>
             <Grid item xs={12} md={3}>
@@ -208,15 +291,15 @@ class App extends React.Component {
                   ${data.desp}
                 </Typography>
                 <p></p>
-                <p></p>
+                
 
-                <b variant="h6" gutterBottom style={{'color': 'grey'}}>
+                <b variant="h6" style={{'color': 'grey'}}>
                   SIZE<span style={{'color': '#C90000'}}>*</span> <b style={{'color': '#222222'}}>{selected}</b>
                 </b>
                 <p></p>
                 <div style={{"display": "flex"}}>
                   {data.sizes.map( size => (
-                  <div size="small" color="inherit" key={size} className={size===selected?classes.button2:classes.button1}>
+                  <div size="small" color="inherit" key={size} className={size===selected?classes.button2:classes.button1} onClick={() => this.handleChangeSize(size)}>
                     {size}
                   </div>
                   ))}
@@ -231,6 +314,19 @@ class App extends React.Component {
             <Grid item xs={false} md={2}></Grid>
           </Grid>
         </div>
+        <Snackbar
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          open={this.state.openSnack}
+          autoHideDuration={3000}
+          onClose={this.handleClose}
+          ContentProps={{
+            'aria-describedby': 'message-id',
+          }}
+          message={<span id="message-id">Please select SIZE</span>}
+        />
       </div>
     );
   }
