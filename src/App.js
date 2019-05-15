@@ -6,9 +6,7 @@ import { withStyles } from '@material-ui/core/styles';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 // import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
-// import grey from '@material-ui/core/colors/grey';
 import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
 import Popper from '@material-ui/core/Popper';
 import Fade from '@material-ui/core/Fade';
 
@@ -28,11 +26,20 @@ const styles = theme => ({
     position: 'relative',
     flexGrow: 1,
   },
-  paper: {
-    
+  divider: {
+    marginBottom: "8.4px"
+  },
+  popper: {
+    width: '350px',
+    height: 'auto',
+  },
+  cartContainer: {
+    padding: '20px',
   },
   myCart: {
-    // position: "absolute",
+    cursor:'pointer',
+    marginLeft: 'auto',
+    marginRight: '50px',
     width: 150,
     height: 32,
     lineHeight: '32px',
@@ -46,20 +53,59 @@ const styles = theme => ({
     padding:30,
   },
   button1: {
-    padding: '14px 0px',
-    borderRadius: '0px',
+    border: '1px solid #CCCCCC',
+    marginRight: '8px',
+    width: "40px",
+    height: "40px",
+    lineHeight: "40px",
+    textAlign: "center",
+    cursor:'pointer',
+  },
+  button2: {
     border: '2px solid #222222',
     marginRight: '8px',
+    width: "40px",
+    height: "38px",
+    lineHeight: "40px",
+    textAlign: "center",
+    cursor:'pointer',
   },
 
-  button2: {
+  addbtn1: {
     // padding: '14px 0px',
     borderRadius: '0px',
     border: '2px solid #222222',
+    transition: 'background-color 0.2s',
+    width: "150px",
+    height: "35px",
+    fontWeight: 600,
+    lineHeight: "35px",
+    textAlign: "center",
+    cursor:'pointer',
   },
+
+  addbtn2: {
+    // padding: '14px 0px',
+    color: 'white',
+    backgroundColor: '#222222',
+    transition: 'background-color 0.2s',
+    borderRadius: '0px',
+    border: '2px solid #222222',
+    width: "150px",
+    height: "35px",
+    fontWeight: 600,
+    lineHeight: "35px",
+    textAlign: "center",
+    cursor:'pointer',
+  },
+
   image: {
     width: 'auto',
     height: '600px',
+  },
+  thumbnail: {
+    width: '100px',
+    height: 'auto',
   }
 
 });
@@ -70,10 +116,12 @@ class App extends React.Component {
   state = {
     open: false,
     anchorEl: null,
-    cart: [
+    carts: [
       {"id" : 1 , "size" : "S", "quanity" : 1},
-      {"id" : 1 , "size" : "L", "quanity" : 3},
-    ]
+      {"id" : 2 , "size" : "L", "quanity" : 3},
+    ],
+    selected: "S",
+    hover: false,
   };
 
   handleClick = event => {
@@ -90,69 +138,97 @@ class App extends React.Component {
     });
   };
 
+  handleToggleHover = () => {
+    this.setState({hover: !this.state.hover})
+  };
+
   render() {
     const { classes } = this.props;
-    const { open, anchorEl} = this.state;
+    const { open, anchorEl, selected, hover} = this.state;
+    const  carts  = this.state.carts;
 
     return (
       <div className={classes.root}>
         <ClickAwayListener onClickAway={this.handleClickAway}>
           <div className={classes.appBar}>
-            
               <div className={classes.myCart} onMouseOver={this.handleClick}>My Cart (4)</div>
-              {/* {open ? (
-                <Paper className={classes.paper}>
-                12334
-                </Paper>
-              ) : null} */}
-              <Popper open={open} anchorEl={anchorEl} transition>
-                {({ TransitionProps }) => (
-                  <Fade {...TransitionProps} timeout={350}>
-                    <Paper>
-                      <Typography>The content of the Popper.</Typography>
-                    </Paper>
-                  </Fade>
-                )}
-              </Popper>
+                <Popper open={open} anchorEl={anchorEl} transition placement='bottom-end' className={classes.popper}>
+                  {({ TransitionProps }) => (
+                    <Fade {...TransitionProps} timeout={350}>
+                      <Paper>
+                        {carts.map( item => (
+                          <Grid container spacing={0} key={item.id}>
+                            <Grid item xs={4} md={4}>
+                              <div className={classes.cartContainer}>
+                                <img className={classes.thumbnail} src='classic-tee.jpg' alt={data.name}/>
+                              </div>
+                            </Grid>
+                            <Grid item xs={4} md={4}>
+                              <div className={classes.cartContainer}>
+                                <Typography variant="body2" gutterBottom>
+                                  {data.name}
+                                </Typography>
+                                <Typography variant="body2" gutterBottom>
+                                {item.quanity}x <b>${data.price}.00</b>
+                                </Typography>
+                                <Typography variant="body2" gutterBottom>
+                                  Size: {item.size}
+                                </Typography>
+                              </div>
+                            </Grid>
+                            <Grid item xs={4} md={4}>
+                            </Grid>
+                          </Grid>
+                        ))}
+                      </Paper>
+                    </Fade>
+                  )}
+                </Popper>
             
           </div>
         </ClickAwayListener>
         <div className={classes.root}>
           <Grid container spacing={0}>
-            <Grid item xs={0} md={3}>
+            <Grid item xs={false} md={3}>
             </Grid>
             <Grid item xs={12} md={3}>
                 <img className={classes.image} src='classic-tee.jpg' alt={data.name}/>
             </Grid>
-            <Grid item xs={0} md={1}></Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={false} md={1}></Grid>
+            <Grid item xs={12} md={3}>
                 <Typography variant="h5" gutterBottom>
                   {data.name}
                 </Typography>
-                <Divider/>
+                <Divider className={classes.divider} />
                 <Typography variant="h6" gutterBottom>
                   ${data.price}
                 </Typography>
-                <Divider/>
+                <Divider className={classes.divider}/>
                 <Typography variant="body2" gutterBottom>
                   ${data.desp}
                 </Typography>
+                <p></p>
+                <p></p>
 
-                <Typography variant="h6" gutterBottom>
-                  SIZE*
-                </Typography>
-                {data.sizes.map( size => (
-                <Button size="small" color="inherit" className={classes.button1}>
-                  {size}
-                </Button>
-                ))}
+                <b variant="h6" gutterBottom style={{'color': 'grey'}}>
+                  SIZE<span style={{'color': '#C90000'}}>*</span> <b style={{'color': '#222222'}}>{selected}</b>
+                </b>
+                <p></p>
+                <div style={{"display": "flex"}}>
+                  {data.sizes.map( size => (
+                  <div size="small" color="inherit" key={size} className={size===selected?classes.button2:classes.button1}>
+                    {size}
+                  </div>
+                  ))}
+                </div>
+                <p></p>
                 <div>
-                  <Button size="small" color="inherit" className={classes.button2}>
+                  <div size="small" color="inherit" className={hover?classes.addbtn2:classes.addbtn1} onMouseEnter={this.handleToggleHover} onMouseLeave={this.handleToggleHover} onClick={this.handleClickAddToCart}>
                     ADD TO CART
-                  </Button>
+                  </div>
                 </div>
             </Grid>
-            <Grid item xs={0} md={1}></Grid>
+            <Grid item xs={false} md={2}></Grid>
           </Grid>
         </div>
       </div>
